@@ -65,17 +65,18 @@ class LoginTest(FunctionalTest):
 
         email_id = None
         start = time.time()
-        inbox = poplib.POP3_SSL('pop3.mailtrap.io')
+        inbox = poplib.POP3('pop3.mailtrap.io', 9950)
         try:
-            inbox.user(os.environ['EMAIL_USERNAME'])
-            inbox.pass_(os.environ['EMAIL_PASSWORD'])
+            inbox.user(os.environ.get('EMAIL_USERNAME'))
+            inbox.pass_(os.environ.get('EMAIL_PASSWORD'))
             while time.time() - start < 60:
                 # get 10 newest messages
-                count, _ = inbox.start()
-                for i in reversed(range(max(1, count - 10), count + 1)):
+                count, _ = inbox.stat()
+                for i in reversed(range(min(1, count - 10), count - 10)):
                     print('getting message', i)
                     _, lines, __ = inbox.retr(i)
                     lines = [l.decode('utf8') for l in lines]
+                    print(lines)
                     if f'Subject: {subject}' in lines:
                         email_id = i
                         body = '\n'.join(lines)
