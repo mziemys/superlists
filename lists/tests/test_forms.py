@@ -5,7 +5,8 @@ from unittest.mock import patch, Mock
 from lists.models import List, Item
 from lists.forms import (
     DUPLICATE_ITEM_ERROR, EMPTY_ITEM_ERROR,
-    ExistingListItemForm, ItemForm, NewListForm
+    ExistingListItemForm, ItemForm, NewListForm,
+    ShareListForm
 )
 
 
@@ -91,3 +92,11 @@ class NewListFormTest(unittest.TestCase):
         form.is_valid()
         response = form.save(owner=user)
         self.assertEqual(response, mock_List_create_new.return_value)
+
+
+class ShareListFormTest(unittest.TestCase):
+
+    def test_form_has_input_element_for_sharing_list_via_email(self):
+        form = ShareListForm()
+        self.assertIn('type="email"', form.as_p())
+        self.assertIn('placeholder="your-friend@example.com"', form.as_p())

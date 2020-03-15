@@ -11,4 +11,14 @@
             <li><a href="{{ list.get_absolute_url }}">{{ list.name }}</a></li>
         {% endfor %}
     </ul>
+
+    <h2>Lists shared by other people</h2>
+    <ul>
+    {% for shared_list in owner.shared_lists.all %}
+        <li>
+            <a href="{{ shared_list.get_absolute_url }}">{{ shared_list.name }}</a>
+            {{ shared_list.owner.email }}
+        </li>
+    {% endfor %}
+    </ul>
 {% endblock extra_content %}

@@ -44,3 +44,9 @@ class NewListForm(ItemForm):
             return List.create_new(first_item_text=self.cleaned_data['text'], owner=owner)
         else:
             return List.create_new(first_item_text=self.cleaned_data['text'])
+
+
+class ShareListForm(forms.Form):
+    sharee = forms.EmailField(widget=forms.EmailInput(
+        attrs={'placeholder': "your-friend@example.com"}
+    ))

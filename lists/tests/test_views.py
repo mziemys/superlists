@@ -2,7 +2,8 @@ from django.test import TestCase
 from lists.models import Item, List
 from lists.forms import (
     ItemForm, ExistingListItemForm,
-    EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR
+    EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR,
+    ShareListForm
 )
 from django.http import HttpRequest
 from lists.views import new_list
@@ -135,6 +136,13 @@ class ListViewTest(TestCase):
         self.assertContains(response, 'name="text"')
 
 
+    def test_displays_share_list_to_email_form(self):
+        list_ = List.objects.create()
+        response = self.client.get(f'/lists/{list_.id}/')
+        self.assertIsInstance(response.context['share_list_form'], ShareListForm)
+        self.assertContains(response, 'name="sharee"')
+
+
 class NewListViewIntegratedTest(TestCase):
 
     def test_can_save_a_POST_request(self):
@@ -227,3 +235,34 @@ class MyListsTest(TestCase):
         correct_user = User.objects.create(email='a@b.com')
         response = self.client.get('/lists/users/a@b.com/')
         self.assertEqual(response.context['owner'], correct_user)
+
+
+class ShareListViewTest(TestCase):
+
+    def test_share_list_view_redirects_after_valid_POST_data(self):
+        list_ = List.objects.create()
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data={'sharee': 'oniciferous@example.com'},
+            follow=True
+        )
+        self.assertRedirects(response, f'/lists/{list_.id}/')
+        self.assertTemplateUsed(response, 'list.html')
+
+
+    def test_user_email_is_added_to_shared_with_list(self):
+        user = User.objects.create(email='oniciferous@example.com')
+        list_ = List.objects.create()
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data={'sharee': 'oniciferous@example.com'}
+        )
+        self.assertIn(user, list_.shared_with.all())
+
+
+    # def test_share_list_view_does_not_redirect_with_invalid_email(self):
+    #     list_ = List.objects.create()
+    #     response = self.client.post(
+    #         f'/lists/{list_.id}/share',
+    #         data={'sharee': 'bademail.com'}
+    #     )
